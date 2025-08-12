@@ -1,3 +1,6 @@
+import { SelectionStrategy } from "./types.ts";
+import { RouletteSelection } from "./Selection.ts";
+
 type Individual = any;
 
 interface Options<T extends Individual> {
@@ -8,15 +11,20 @@ interface Options<T extends Individual> {
     generateIndividual: () => T;
     crossover: (parent1: T, parent2: T) => [T,T];
     mutate: (ind: T, mutationRate: number) => T;
+    selection?: SelectionStrategy<T>;
 }
 
-class StupidGene<T extends Individual> {
+class GeneticAlgorithm<T extends Individual> {
     private population: T[] = []
     private fitnessScore: number[] = []
-    private options: Options<T>
+    private generation: number = 0
+    private options: Omit<Options<T>, "selection"> & { selection: SelectionStrategy<T> }
 
     constructor(options: Options<T>){
-        this.options = options;
+        this.options = {
+            ...options,
+            selection: options.selection ?? new RouletteSelection<T>() // fallback
+        }
         this.initPopulation();
     }
 
@@ -32,25 +40,14 @@ class StupidGene<T extends Individual> {
         this.fitnessScore = this.population.map(this.options.fitness)
     }
 
-    private selectParent(){
-        const totalFitness = this.fitnessScore.reduce((a, b) => a+b, 0)
-        let pick = Math.random() * totalFitness; // pick from 0 to totalFitness
-        for(let i = 0;i < this.population.length;i++){
-            pick -= this.fitnessScore[i]
-            if(pick < 0) return this.population[i]
-        }
-        // fallback
-        return this.population[this.population.length - 1]
-    }
-
-    public runGeneration(){
+    public step(){
         this.evaluate()
 
         // Generate new population
         const newPopulation: T[] = [];
         while(newPopulation.length < this.options.populationSize){
-            const parent1 = this.selectParent()
-            const parent2 = this.selectParent()
+            const parent1 = this.options.selection.select(this.population, this.fitnessScore)
+            const parent2 = this.options.selection.select(this.population,this.fitnessScore)
 
             let [child1, child2] = [parent1,parent2]
             // Crossover - recombine genetic info
@@ -67,16 +64,34 @@ class StupidGene<T extends Individual> {
         }
 
         this.population = newPopulation;
+        this.evaluate();
+        this.generation++
     }
 
-    public getBestIndividual(): { individual: T, fitness: number } {
-        this.evaluate()
+    public getBest(): { individual: T, fitness: number, generation: number } {
         let maxIndex = 0;
         for(let i = 1;i < this.fitnessScore.length;i++){
             if(this.fitnessScore[i] > this.fitnessScore[maxIndex]) maxIndex = i;
         }
-        return { individual: this.population[maxIndex], fitness: this.fitnessScore[maxIndex] }
+        return { 
+            individual: this.population[maxIndex], 
+            fitness: this.fitnessScore[maxIndex],
+            generation: this.generation
+        }
+    }
+
+    public run(maxGenerations: number, onGeneration:(best: { individual: T, fitness: number, generation: number }) => boolean | void){
+        for(let gen = 0; gen < maxGenerations;gen++){
+            this.step();
+            const best = this.getBest()
+            
+            const stop = onGeneration?.({
+                ...best,
+            })
+
+            if(stop) break;
+        }
     }
 }
 
-export default StupidGene;
+export default GeneticAlgorithm;

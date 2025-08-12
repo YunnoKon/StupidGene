@@ -1,4 +1,4 @@
-import StupidGene from "../lib.ts";
+import sg from "../lib/index.ts";
 
 const target = "COOKIES"
 const chars = "ABCDEFGHIJKLMNOPQRSTUVWXTYZ "
@@ -35,7 +35,7 @@ function mutate(ind: string, mutationRate: number): string {
     return result
 }
 
-const textGenetic = new StupidGene<string>({
+const textGenetic = new sg.GeneticAlgorithm<string>({
     populationSize: 60,
     mutationRate: 0.1,
     crossoverRate: 0.6,
@@ -45,8 +45,7 @@ const textGenetic = new StupidGene<string>({
     mutate
 })
 
-for(let i = 0;i < 400;i++){
-    textGenetic.runGeneration()
-    let best = textGenetic.getBestIndividual();
-    console.log(`Iter ${i} | Best Generation: ${best.individual}, Fitness: ${best.fitness}`)
-}
+textGenetic.run(400,(best) => {
+    console.log(`Iter ${best.generation} | Best Generation: ${best.individual}, Fitness: ${best.fitness}`)
+    return best.fitness == target.length
+})
