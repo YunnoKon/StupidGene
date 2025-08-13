@@ -4,11 +4,7 @@ const target = "COOKIES"
 const chars = "ABCDEFGHIJKLMNOPQRSTUVWXTYZ "
 
 function generateIndividual(): string {
-    return Array.from({
-        length: target.length
-    },() => {
-        return chars[Math.floor(Math.random() * chars.length)]
-    }).join("")
+    return sg.Utils.randomString(target.length,chars)
 }
 
 function fitness(ind: string): number {
@@ -17,13 +13,6 @@ function fitness(ind: string): number {
         if(ind[i]==target[i]) score++;
     }
     return score;
-}
-
-function crossover(parent1: string, parent2: string): [string, string] {
-    const randPoint = Math.floor(Math.random() * target.length)
-    const child1 = parent1.slice(0, randPoint) + parent2.slice(randPoint)
-    const child2 = parent2.slice(0, randPoint) + parent1.slice(randPoint)
-    return [child1, child2];
 }
 
 function mutate(ind: string, mutationRate: number): string {
@@ -35,17 +24,17 @@ function mutate(ind: string, mutationRate: number): string {
     return result
 }
 
-const textGenetic = new sg.GeneticAlgorithm<string>({
+const ga = new sg.GeneticAlgorithm<string>({
     populationSize: 60,
     mutationRate: 0.1,
     crossoverRate: 0.6,
     fitness,
     generateIndividual,
-    crossover,
+    crossover: sg.Utils.singlePointCrossoverString,
     mutate
 })
 
-textGenetic.run(400,(best) => {
+ga.run(400,(best) => {
     console.log(`Iter ${best.generation} | Best Generation: ${best.individual}, Fitness: ${best.fitness}`)
     return best.fitness == target.length
 })

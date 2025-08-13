@@ -1,5 +1,6 @@
-import { SelectionStrategy } from "./types.ts";
+import { ReplacementStrategy, SelectionStrategy } from "./types.ts";
 import { RouletteSelection } from "./Selection.ts";
+import { FullReplacement } from "./replacement.ts";
 
 type Individual = any;
 
@@ -12,18 +13,23 @@ interface Options<T extends Individual> {
     crossover: (parent1: T, parent2: T) => [T,T];
     mutate: (ind: T, mutationRate: number) => T;
     selection?: SelectionStrategy<T>;
+    replacement?: ReplacementStrategy<T>;
 }
 
 class GeneticAlgorithm<T extends Individual> {
     private population: T[] = []
     private fitnessScore: number[] = []
     private generation: number = 0
-    private options: Omit<Options<T>, "selection"> & { selection: SelectionStrategy<T> }
+    private options: Omit<Options<T>, "selection" | "replacement"> & { 
+        selection: SelectionStrategy<T>,
+        replacement: ReplacementStrategy<T>
+    }
 
     constructor(options: Options<T>){
         this.options = {
             ...options,
-            selection: options.selection ?? new RouletteSelection<T>() // fallback
+            selection: options.selection ?? new RouletteSelection<T>(),
+            replacement: options.replacement ?? new FullReplacement<T>()
         }
         this.initPopulation();
     }
@@ -63,7 +69,11 @@ class GeneticAlgorithm<T extends Individual> {
             }
         }
 
-        this.population = newPopulation;
+        this.population = this.options.replacement.replace(
+            this.population,
+            newPopulation,
+            this.fitnessScore
+        )
         this.evaluate();
         this.generation++
     }

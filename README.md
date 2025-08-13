@@ -5,6 +5,7 @@
 
 ## Examples
 - [Random String](./example/randStr.ts)
+- [Number Optimization](./example//numOptimize.ts)
 
 ## LICENSE
 [MIT License](./LICENSE)
