@@ -10,5 +10,13 @@
 - **Evolution Strategies**
     - [Peak Value](./example/peakValue.ts)
 
+## Download
+Currently the project is only avaliable in Github.
+
+To download through `npm`, use the `npm` branch
+```bash
+npm i https://github.com/YunnoKon/StupidGene/tree/npm
+```
+
 ## LICENSE
 [MIT License](./LICENSE)
