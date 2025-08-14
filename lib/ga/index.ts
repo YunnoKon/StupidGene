@@ -4,7 +4,7 @@ import { FullReplacement } from "./replacement.ts";
 
 type Individual = any;
 
-interface Options<T extends Individual> {
+interface GAOptions<T extends Individual> {
     populationSize: number;
     mutationRate: number;
     crossoverRate: number;
@@ -20,12 +20,12 @@ class GeneticAlgorithm<T extends Individual> {
     private population: T[] = []
     private fitnessScore: number[] = []
     private generation: number = 0
-    private options: Omit<Options<T>, "selection" | "replacement"> & { 
+    private options: Omit<GAOptions<T>, "selection" | "replacement"> & { 
         selection: SelectionStrategy<T>,
         replacement: ReplacementStrategy<T>
     }
 
-    constructor(options: Options<T>){
+    constructor(options: GAOptions<T>){
         this.options = {
             ...options,
             selection: options.selection ?? new RouletteSelection<T>(),
