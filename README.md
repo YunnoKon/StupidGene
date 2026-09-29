@@ -1,3 +1,6 @@
+> [!WARNING]
+> This project is no longer being actively developed and maintained, the repo serves as archive.
+
 <img src="./assets/logo.png" alt="placeholder image" width="100"/>
 
 # Stupid Gene
